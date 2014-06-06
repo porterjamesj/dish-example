@@ -49,7 +49,7 @@ with p.group(max=20):
         job["fastq1"] = job["tar_manifest"][0]
         job["fastq2"] = job["tar_manifest"][1]
 
-with p.transaction(["{fastq1}.trimmed", "{fastq2}.trimmed"])
+with p.transaction(["{fastq1}.trimmed", "{fastq2}.trimmed"]):
     p.run("java -jar /usr/local/java/Trimmomatic-0.32/trimmomatic-0.32.jar PE "
           " -phred33 -threads 8 {fastq1} {fastq2}"
           " {fastq1}.trimmed /dev/null"
