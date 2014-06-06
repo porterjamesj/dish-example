@@ -63,4 +63,6 @@ with p.transaction("bowtie_out.sam"):
           " -p 8 -s 100000 -u 250000 -q"
           " -x /glusterfs/data/ICGC1/ref/bcbio-data/tcga/genomes/hg19/bowtie2/hg19"
           " -1 {fastq1}.trimmed -2 {fastq2}.trimmed"
-          " -S bowtie_out.sam")
+          " -S bowtie_out.sam",
+          cores=8,
+          mem=8)
