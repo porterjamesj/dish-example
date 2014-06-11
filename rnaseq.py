@@ -1,5 +1,4 @@
 import os
-import tarfile
 from dish.pipeline import Pipeline
 
 
@@ -26,29 +25,28 @@ p = Pipeline("/glusterfs/netapp/home2/PORTERJAMESJ/dishtest/work",
              "batch")
 p.start()
 
-# define pipeline functions with signature f(job, logger)
-def get_tar_manifest(job, logger):
-    tar = tarfile.open(job["tarball"])
-    job["tar_manifest"] = [m.name for m in tar.getmembers()]
+def has_two_fastqs(job):
+    """Are there two .fastq files in the workdir?"""
+    fastqs = [fname for fname in os.listdir(job["workdir"])
+              if fname.endswith(".fastq")]
+    if len(fastqs) > 2:
+        raise RuntimeError("something is dramatically wrong")
+    return len(fastqs) == 2
 
-with p.group(max=20):
-    # first we get a manifest from each fastq so we know what to
-    # transact on. it's somewhat annoying to have to do this outside
-    # the transaction because it's a fair amount of time wasted if the
-    # untarring is already done. really this is the fault of using
-    # .tar.gz archives because you can't quickly get a manifest out of
-    # them.
-    p.map(get_tar_manifest)
-    # now transact on the existance of the fastqs from the tarball
-    with p.transaction(["{tar_manifest[0]}","{tar_manifest[1]}"]):
-        p.run("tar xvzf {tarball}")
-    # at this point we can be sure that either all the tars have been
-    # successfuly extracted OR an error has been thrown
-    for job in p.jobs:
-        # rename things for convenience
-        job["fastq1"] = job["tar_manifest"][0]
-        job["fastq2"] = job["tar_manifest"][1]
+# transact on two fastqs being there. we could actually extract the
+# manifest from each tarball and transact on those files, but that
+# would be really slow because of the gzipping
+with p.transaction(has_two_fastqs):
+    p.run("tar xvzf {tarball}", max=25)  # running much more than this kills netapp
 
+for job in p.jobs:
+    fastqs = [fname for fname in os.listdir(job["workdir"])
+              if fname.endswith(".fastq")]
+    fastqs.sort()
+    job["fastq1"] = fastqs[0]
+    job["fastq2"] = fastqs[1]
+
+# trim with trimmomatic
 with p.transaction(["{fastq1}.trimmed", "{fastq2}.trimmed"]):
     p.run("java -jar /usr/local/java/Trimmomatic-0.32/trimmomatic-0.32.jar PE "
           " -phred33 -threads 8 {workdir}/{fastq1} {workdir}/{fastq2}"
