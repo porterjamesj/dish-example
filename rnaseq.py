@@ -58,8 +58,9 @@ with p.transaction(["{fastq1}.trimmed", "{fastq2}.trimmed"]):
           cores=8,
           mem=8)
 
+# use bowtie to estimate innerdist
 with p.transaction("bowtie_out.sam"):
-    p.run("/usr/local/bin/bowtie2"
+    p.run("bowtie2"
           " -p 8 -s 100000 -u 250000 -q"
           " -x /glusterfs/data/ICGC1/ref/bcbio-data/tcga/genomes/hg19/bowtie2/hg19"
           " -1 {workdir}/{fastq1}.trimmed -2 {workdir}/{fastq2}.trimmed"
