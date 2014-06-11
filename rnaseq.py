@@ -51,7 +51,7 @@ with p.group(max=20):
 
 with p.transaction(["{fastq1}.trimmed", "{fastq2}.trimmed"]):
     p.run("java -jar /usr/local/java/Trimmomatic-0.32/trimmomatic-0.32.jar PE "
-          " -phred33 -threads 8 {fastq1} {fastq2}"
+          " -phred33 -threads 8 {workdir}/{fastq1} {workdir}/{fastq2}"
           " {fastq1}.trimmed /dev/null"
           " {fastq2}.trimmed /dev/null"
           " LEADING:20 TRAILING:20 SLIDINGWINDOW:4:20 MINLEN:36",
@@ -62,7 +62,7 @@ with p.transaction("bowtie_out.sam"):
     p.run("/usr/local/bin/bowtie2"
           " -p 8 -s 100000 -u 250000 -q"
           " -x /glusterfs/data/ICGC1/ref/bcbio-data/tcga/genomes/hg19/bowtie2/hg19"
-          " -1 {fastq1}.trimmed -2 {fastq2}.trimmed"
+          " -1 {workdir}/{fastq1}.trimmed -2 {workdir}/{fastq2}.trimmed"
           " -S bowtie_out.sam",
           cores=8,
           mem=8)
