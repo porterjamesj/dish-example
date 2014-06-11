@@ -21,7 +21,7 @@ for dirname in os.listdir(datadir):
 
 p = Pipeline("/glusterfs/netapp/home2/PORTERJAMESJ/dishtest/work",
              jobs,
-             30,
+             70,
              "torque",
              "batch")
 p.start()
