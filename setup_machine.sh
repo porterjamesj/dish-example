@@ -19,17 +19,19 @@ mount -t cifs \\\\cloud-controller\\glusterfs /glusterfs/ -o user=$SAMBA_USER,pa
 apt-get install --yes bowtie2 tophat cufflinks
 
 # get trimmomatic
-apt-get install --yes unzip default-jre
+apt-get install --yes default-jre
 mkdir /usr/local/java
-cd /usr/local/java
-wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.32.zip
-unzip Trimmomatic-0.32.zip
+# Note that will will need to download and unzip Trimmomatic to your own
+# home directory and then change this line
+#
+# in the future the object store would probably be a good place to store this
+cp -r /glusterfs/netapp/home2/PORTERJAMESJ/Trimmomatic-0.32/ /usr/local/java/
 
 
 # install python tools
 cd /tmp
 apt-get install --yes git g++ python2.7-dev python-setuptools python-pip zlib1g-dev python-numpy
-pip install pysam
+pip install --proxy $http_proxy pysam
 git clone https://github.com/porterjamesj/dish.git
 cd dish
 python setup.py install
