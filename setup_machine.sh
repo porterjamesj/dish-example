@@ -31,7 +31,7 @@ cp -r /glusterfs/netapp/home2/PORTERJAMESJ/Trimmomatic-0.32/ /usr/local/java/
 # install python tools
 cd /tmp
 apt-get install --yes git g++ python2.7-dev python-setuptools python-pip zlib1g-dev python-numpy
-pip install --proxy $http_proxy pysam
+pip install pysam
 git clone https://github.com/porterjamesj/dish.git
 cd dish
 python setup.py install

@@ -21,9 +21,9 @@ def innerdist_from_bowtie(job, logger):
     https://github.com/chapmanb/bcbio-nextgen/blob/18dea9adb0850cb1b0d706f5d611a0b156ef775e/bcbio/ngsalign/tophat.py#L290-L304"""
     sam = os.path.join(job["workdir"], "bowtie_out.sam")
     with closing(pysam.Samfile(sam)) as work_sam:
-            for read in work_sam:
-                if read.is_proper_pair and read.is_read1:
-                    dists.append(abs(read.isize) - 2 * read.rlen)
+        for read in work_sam:
+            if read.is_proper_pair and read.is_read1:
+                dists.append(abs(read.isize) - 2 * read.rlen)
         median = float(numpy.median(dists))
         deviations = []
         for d in dists:
@@ -109,7 +109,7 @@ with p.transaction("tophat_out/accepted_hits.bam"):
 
 # run cufflinks
 with p.transaction("cufflinks_out/transcripts.gtf"):
-    p.run(" cufflinks"
+    p.run("cufflinks"
           " --num-threads 8"
           " --quiet"
           " --no-update-check"
