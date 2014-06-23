@@ -16,7 +16,7 @@ SAMBA_PASS=$(wget -O - -q ${TUKEY_METADATA}password)
 mount -t cifs \\\\cloud-controller\\glusterfs /glusterfs/ -o user=$SAMBA_USER,password=$SAMBA_PASS,noperm,nobrl,rsize=65536
 
 # install tuxedo tools
-apt-get install --yes bowtie2 tophat cufflinks
+apt-get install --yes bowtie2 tophat cufflinks samtools
 
 # get trimmomatic
 apt-get install --yes default-jre

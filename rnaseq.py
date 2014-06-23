@@ -20,6 +20,7 @@ def innerdist_from_bowtie(job, logger):
     """Code from:
     https://github.com/chapmanb/bcbio-nextgen/blob/18dea9adb0850cb1b0d706f5d611a0b156ef775e/bcbio/ngsalign/tophat.py#L290-L304"""
     sam = os.path.join(job["workdir"], "bowtie_out.sam")
+    dists = []
     with closing(pysam.Samfile(sam)) as work_sam:
         for read in work_sam:
             if read.is_proper_pair and read.is_read1:
@@ -53,7 +54,7 @@ for dirname in os.listdir(datadir):
 
 p = Pipeline("/glusterfs/netapp/home2/PORTERJAMESJ/dishtest/work",
              jobs,
-             60,
+             50,
              "torque",
              "batch", retries=5)
 
@@ -89,23 +90,22 @@ with p.transaction("bowtie_out.sam"):
           " -x /glusterfs/data/ICGC1/ref/bcbio-data/tcga/genomes/hg19/bowtie2/hg19"
           " -1 {workdir}/{fastq1}.trimmed -2 {workdir}/{fastq2}.trimmed"
           " -S bowtie_out.sam",
-          cores=8,
-          mem=8)
-
+          cores=8)
 
 # run tophat
 with p.transaction("tophat_out/accepted_hits.bam"):
-    p.map(innerdist_from_bowtie)
-    p.run("tophat"
-          " --library-type=fr-unstranded"
-          " --num-threads=8"
-          " --GTF=/glusterfs/data/ICGC1/ref/bcbio-data/tcga/genomes/hg19/rnaseq/ref-transcripts.gtf"
-          " --no-coverage-search"
-          " --output-dir=tophat_out"
-          " --mate-std-dev={std_dev} --mate-inner-dist={innder_dist}"
-          " /glusterfs/data/ICGC1/ref/bcbio-data/tcga/genomes/hg19/bowtie2/hg19"
-          " {workdir}/{fastq1}.trimmed"
-          " {workdir}/{fastq2}.trimmed")
+    with p.group(cores=8):
+        p.map(innerdist_from_bowtie)
+        p.run("tophat"
+              " --library-type=fr-unstranded"
+              " --num-threads=8"
+              " --GTF=/glusterfs/data/ICGC1/ref/bcbio-data/tcga/genomes/hg19/rnaseq/ref-transcripts.gtf"
+              " --no-coverage-search"
+              " --output-dir=tophat_out"
+              " --mate-std-dev={std_dev} --mate-inner-dist={inner_dist}"
+              " /glusterfs/data/ICGC1/ref/bcbio-data/tcga/genomes/hg19/bowtie2/hg19"
+              " {workdir}/{fastq1}.trimmed"
+              " {workdir}/{fastq2}.trimmed")
 
 # run cufflinks
 with p.transaction("cufflinks_out/transcripts.gtf"):
@@ -116,6 +116,7 @@ with p.transaction("cufflinks_out/transcripts.gtf"):
           " --frag-bias-correct /glusterfs/data/ICGC1/ref/bcbio-data/tcga/genomes/hg19/seq/hg19.fa"
           " --multi-read-correct"
           " --upper-quartile-norm"
-          " --GTF /usr/local/share/bcbio-nextgen/genomes/hg19/rnaseq/ref-transcripts.gtf"
+          " --GTF /glusterfs/data/ICGC1/ref/bcbio-data/tcga/genomes/hg19/rnaseq/ref-transcripts.gtf"
           " --output-dir cufflinks_out"
-          " {workdir}/tophat_out/accepted_hits.bam")
+          " {workdir}/tophat_out/accepted_hits.bam",
+	cores=8)
